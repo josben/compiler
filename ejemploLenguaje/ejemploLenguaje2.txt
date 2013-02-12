@@ -1,0 +1,12 @@
+
+module MiPortal where
+
+import Ejemplo;
+import Datos;
+import PortalSimple;
+import Portlet;
+
+new Portales (Ejemplos)
+<%
+	type hola = Portlet;
+%>

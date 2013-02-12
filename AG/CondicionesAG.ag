@@ -1,0 +1,89 @@
+
+-- Atributo para obtener la lista de los imports que se estan usando
+
+ATTR ModuleBody Imports Import {- Portal PortalBody TopDecls TopDecl -} [ || listaImports:{[String]} ]
+
+SEM ModuleBody
+ | ConsModBody  lhs.listaImports = @imports.listaImports
+ | ConsModBody2 lhs.listaImports = {[]}
+
+SEM Imports
+ | Cons lhs.listaImports = @hd.listaImports ++ @tl.listaImports
+ | Nil  lhs.listaImports = []
+
+SEM Import
+-- | IdentificadorImport lhs.listaImports = [@string]
+ | IdentificadorImport lhs.listaImports = [@imp]
+
+-- Atributo con toda la lista de Tipos Identificadores del codigo
+
+ATTR ModuleBody Portal PortalBody TopDecls TopDecl [|| listaIds:{[String]}]
+
+SEM TopDecls
+ | Cons lhs.listaIds = @hd.listaIds ++ @tl.listaIds
+ | Nil  lhs.listaIds = []
+ 
+SEM TopDecl
+ | ConsTopDecl lhs.listaIds =  [@nomAttr] -- [@string]
+
+-- Atributo para los tipos, para obtener todos los tipos que se estan usando
+
+ATTR TopDecls TopDecl {- Type -} [|| listaTypes:{[String]}]
+
+SEM TopDecls
+ | Cons lhs.listaTypes = @hd.listaTypes ++ @tl.listaTypes
+ | Nil  lhs.listaTypes = []
+
+SEM TopDecl
+ | ConsTopDecl lhs.listaTypes = [@nomType] -- @type.listaTypes
+{-
+SEM Type
+ | ConsType lhs.listaTypes = [@string]
+-}
+
+-- Heredamos el atributo con la lista de identificadores
+
+-- ATTR Imports Import {- Portal PortalBody TopDecls TopDecl -} Llamada [ listaImportsH:{[String]} || ]
+ATTR Portal PortalBody TopDecls TopDecl {- Llamada -} [ listaImportsH:{[String]} || ]
+
+SEM ModuleBody
+ | ConsModBody  portal.listaImportsH = @imports.listaImports
+ | ConsModBody2 portal.listaImportsH = []
+
+{-
+SEM ModuleBody
+ | ConsModBody imports.listaImportsH = @imports.listaImports
+-}
+{-
+SEM Portal
+ | ConsPortal portalBody.listaImportsH = @portalBody.listaImports
+
+SEM PortalBody
+ | ConsPortalBody topDecls.listaImportsH = @topDecls.listaImports
+-}
+
+ATTR TopDecls TopDecl {- Type -} {- Llamada -} [ listaIdsH, listaTypesH:{[String]} || ]
+
+SEM PortalBody
+ | ConsPortalBody topDecls.listaIdsH   = @topDecls.listaIds
+ 				  topDecls.listaTypesH = @topDecls.listaTypes
+
+ATTR Portal PortalBody Methods Method Decls Decl DeclSimple DefInterna [ listaIdsH:{[String]} || ]
+
+SEM ModuleBody
+ | ConsModBody  portal.listaIdsH = @portal.listaIds
+ | ConsModBody2 portal.listaIdsH = @portal.listaIds
+
+
+{-
+ATTR ModuleBody Imports Import PortalBody TopDecls TopDecl Type [ || resultado: Bool]
+-- ATTR Imports Import PortalBody TopDecls TopDecl Type [ || resultado: Bool]
+
+SEM TopDecls
+ | Cons lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil  lhs.resultado = True
+ 
+SEM Imports
+ | Cons lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil  lhs.resultado = True
+-}

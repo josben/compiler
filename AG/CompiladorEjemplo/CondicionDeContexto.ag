@@ -1,0 +1,68 @@
+-- 1. Gramatica libre de contexto soporte
+
+DATA Expr
+ | Entero         Int
+ | Identificador  String
+ | Let            Decls   Expr
+
+TYPE Decls = [ Decl ]
+
+DATA Decl
+ | Decl           String  Expr
+
+DATA Root
+ | Root           Expr
+
+-- 2. Declaraciones de atributos
+
+ATTR Expr Decls Decl [|| listaVars: ListaIds error: Bool]
+
+{
+type ListaIds = [String]
+}
+
+ATTR Expr [ listaVars: ListaIds ||]
+
+-- 3. Reglas semanticas
+
+-- Calcular la lista de identificadores definidos
+
+SEM Decl
+ | Decl           lhs.listaVars = { [ @string ] }
+
+SEM Decls
+ | Cons           lhs.listaVars = { @hd.listaVars ++ @tl.listaVars }
+ | Nil            lhs.listaVars = {[]}
+
+SEM Expr
+ | Entero         lhs.listaVars = {[]}
+ | Identificador  lhs.listaVars = {[]}
+ | Let            lhs.listaVars = {[]}
+
+-- Calcular el error buscando en los usos de los identificadores
+
+SEM Decl
+ | Decl           lhs.error = { @expr.error }
+
+SEM Decls
+ | Cons           lhs.error = { @hd.error || @tl.error }
+ | Nil            lhs.error = { False }
+
+SEM Expr
+ | Entero         lhs.error = { False }
+ | Identificador  lhs.error = { not (@string `elem` @lhs.listaVars) }    -- aqui es la cosa
+ | Let            lhs.error = { @decls.error || @expr.error }
+
+-- Llevar la informacion sobre las declaraciones al lugar que corresponde
+ 
+SEM Expr
+ | Let            expr.listaVars = { @decls.listaVars ++ @lhs.listaVars }
+SEM Decl
+ | Decl           expr.listaVars = { [] }
+SEM Root
+ | Root           expr.listaVars = { [] }
+
+-- 
+
+SEM Root [|| salida: String ]
+ | Root           lhs.salida = { "Resultado: " ++ if not @expr.error then "OK" else "Error" }

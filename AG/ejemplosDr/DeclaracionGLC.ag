@@ -1,0 +1,135 @@
+-- Gramatica libre de contexto
+
+DATA Root
+ | Root Programa
+
+DATA Programa
+ | Clase String Decls
+ 
+DATA Decls
+ | ConsD Decl Decls
+ | VacioD
+
+DATA Decl
+ | Atributo Tipo String
+ | Metodo   Tipo String Cuerpo
+
+DATA Tipo
+ | Entero
+ | Nulo
+ 
+DATA Cuerpo
+ | ConsM Llamada Cuerpo
+ | VacioM
+
+DATA Llamada
+ | Atributo  String
+ | Metodo    String
+
+DERIVING * : Show
+
+-- Ejemplo
+
+{
+main = sem_Root ejemplo
+
+ejemplo    = Root_Root (Programa_Clase "A" cuerpoA)
+cuerpoA    =  Decls_ConsD atributoA1
+             (Decls_ConsD metodoM1 
+             (Decls_ConsD atributoA2
+             (Decls_ConsD metodoM2   Decls_VacioD)))
+atributoA1 = Decl_Atributo Tipo_Entero "a1"
+atributoA2 = Decl_Atributo Tipo_Entero "a2"
+metodoM1   = Decl_Metodo   Tipo_Nulo   "m1"  cuerpoM1
+cuerpoM1   =  Cuerpo_ConsM llamadaM11
+             (Cuerpo_ConsM llamadaM12 Cuerpo_VacioM)
+llamadaM11 = Llamada_Atributo "a1"
+llamadaM12 = Llamada_Atributo "a1"
+metodoM2   = Decl_Metodo   Tipo_Entero   "m2"  cuerpoM2
+cuerpoM2   =  Cuerpo_ConsM llamadaM21
+             (Cuerpo_ConsM llamadaM22
+             (Cuerpo_ConsM llamadaM23 Cuerpo_VacioM))
+llamadaM21 = Llamada_Atributo "a2"
+llamadaM22 = Llamada_Atributo "a1"
+llamadaM23 = Llamada_Metodo "m1"
+-- llamadaM24 = Llamada_Atributo "hola"
+}
+
+-- Atributo para mostrar el programa a partir del arbol
+
+ATTR Root [|| out: {IO ()}]
+ATTR Programa Decls Decl Tipo Cuerpo Llamada [|| out: String ]
+
+SEM Root
+ | Root     lhs.out = putStrLn (@programa.out ++ "\n"
+                                 ++ if not @programa.resultado then "Error"
+                                                               else "Compilacion sin errores")
+
+SEM Programa
+ | Clase    lhs.out = "clase " ++ @string ++ "{\n" ++ @decls.out ++ "}"
+
+SEM Decls
+ | ConsD    lhs.out = "  " ++ @decl.out ++ "\n" ++ @decls.out
+ | VacioD   lhs.out = ""
+
+SEM Decl
+ | Atributo lhs.out = @tipo.out ++ @string ++ ";"
+ | Metodo   lhs.out = @tipo.out ++ @string ++ "(){\n" ++ @cuerpo.out ++ "  }"
+
+SEM Tipo
+ | Entero   lhs.out = "int "
+ | Nulo     lhs.out = "void "
+
+SEM Cuerpo
+ | ConsM    lhs.out = "    " ++  @llamada.out ++ "\n" ++ @cuerpo.out
+ | VacioM   lhs.out = ""
+
+SEM Llamada
+ | Atributo lhs.out = @string ++ ";"
+ | Metodo   lhs.out = @string ++ "();"
+
+
+-- Atribucion para calculo de condicion de contexto
+
+-- Atributo con la lista de identificadores
+
+ATTR Decls Decl [|| listaIds: {[String]}]
+
+SEM Decls
+ | ConsD    lhs.listaIds = @decl.listaIds ++ @decls.listaIds
+ | VacioD   lhs.listaIds =[] 
+
+SEM Decl
+ | Atributo lhs.listaIds = [ @string ]
+ | Metodo   lhs.listaIds = [ @string ]
+
+-- Se hereda el atributo con la lista de identificadores
+
+ATTR Decls Decl Cuerpo Llamada [listaIdsH: {[String]} ||]
+
+SEM Programa
+ | Clase    decls.listaIdsH = @decls.listaIds
+
+SEM Decl
+ | Metodo   cuerpo.listaIdsH = @lhs.listaIdsH
+ 
+-- Se sintetiza un valor booleano con el resultado de la consulta
+-- sobre los nodos de uso
+
+ATTR Programa Decls Decl Cuerpo Llamada [|| resultado: Bool ]
+
+SEM Decls
+ | ConsD    lhs.resultado = @decl.resultado && @decls.resultado
+ | VacioD   lhs.resultado = True
+
+SEM Decl
+ | Atributo lhs.resultado = True
+ | Metodo   lhs.resultado = @cuerpo.resultado
+
+SEM Cuerpo
+ | ConsM    lhs.resultado = @llamada.resultado && @cuerpo.resultado
+ | VacioM   lhs.resultado = True
+
+SEM Llamada
+ | Atributo lhs.resultado = @string `elem` @lhs.listaIdsH
+ | Metodo   lhs.resultado = @string `elem` @lhs.listaIdsH

@@ -1,0 +1,142 @@
+{-
+ * Autor(es): Pablo Azero (PRA)
+ * Version  : 08122005 PRA
+ -}
+
+-- Gramatica libre de contexto
+
+DATA Root
+ | Root Programa
+
+DATA Programa
+ | Clase String Decls
+ 
+TYPE Decls = [ Decl ]
+
+DATA Decl
+ | Decl  Encab MCuerpo
+
+DATA Encab
+ | Encab Tipo  String
+
+DATA Tipo
+ | Entero
+ | Nulo
+
+TYPE MCuerpo = MAYBE Cuerpo
+
+TYPE Cuerpo  = [ Llamada ]
+
+DATA Llamada
+ | Llamada  Bool  String
+
+DERIVING * : Show
+
+-- Ejemplo
+
+{-
+main = sem_Root ejemplo
+
+ejemplo    = Root_Root claseA
+claseA     = Programa_Clase "A" cuerpoA
+cuerpoA    = atributoA1 : metodoM1 : atributoA2 : metodoM2 : []
+atributoA1 = Decl_Decl (Encab_Encab Tipo_Entero "a1") Nothing
+atributoA2 = Decl_Decl (Encab_Encab Tipo_Entero "a2") Nothing
+metodoM1   = Decl_Decl (Encab_Encab Tipo_Nulo   "m1") (Just cuerpoM1)
+cuerpoM1   = llamadaM11 : llamadaM12 : []
+llamadaM11 = Llamada_Llamada True "a1"
+llamadaM12 = Llamada_Llamada True "b"
+metodoM2   = Decl_Decl (Encab_Encab Tipo_Entero "m2") (Just cuerpoM2)
+cuerpoM2   = llamadaM21 : llamadaM22 : llamadaM23 : []
+llamadaM21 = Llamada_Llamada True  "a2"
+llamadaM22 = Llamada_Llamada True  "a"
+llamadaM23 = Llamada_Llamada False "m1"
+-}
+
+-- Atributo para mostrar el programa a partir del arbol
+
+ATTR Root [|| out: {IO ()}]
+ATTR Programa Decls Decl Encab MCuerpo Tipo Cuerpo Llamada [|| out: String ]
+
+SEM Root
+ | Root     lhs.out = putStrLn (@programa.out ++ "\n"
+                                 ++ if not @programa.resultado
+                                     then "Error"
+                                     else "Compilacion sin errores")
+
+SEM Programa
+ | Clase    lhs.out = "clase " ++ @string ++ "{\n" ++ @decls.out ++ "}"
+
+SEM Decls
+ | Cons     lhs.out = "  " ++ @hd.out ++ "\n" ++ @tl.out
+ | Nil      lhs.out = ""
+
+SEM Decl
+ | Decl     lhs.out = @encab.out ++ @mCuerpo.out
+
+SEM Encab
+ | Encab    lhs.out = @tipo.out ++ @string
+
+SEM MCuerpo
+ | Just     lhs.out = "(){\n" ++ @just.out ++ "  }"
+ | Nothing  lhs.out = ";"
+
+SEM Tipo
+ | Entero   lhs.out = "int "
+ | Nulo     lhs.out = "void "
+
+SEM Cuerpo
+ | Cons     lhs.out = "    " ++  @hd.out ++ "\n" ++ @tl.out
+ | Nil      lhs.out = ""
+
+SEM Llamada
+ | Llamada  lhs.out = @string ++ (if @bool then "" else "()") ++ ";"
+                       ++ if not @error then " <- Identificador no declarado"
+                                        else ""
+
+-- Atribucion para calculo de condicion de contexto
+
+-- Atributo con la lista de identificadores
+
+ATTR Decls Decl Encab [|| listaIds: {[String]}]
+
+SEM Decls
+ | Cons     lhs.listaIds = @hd.listaIds ++ @tl.listaIds
+ | Nil      lhs.listaIds = [] 
+
+SEM Decl
+ | Decl     lhs.listaIds = @encab.listaIds
+
+SEM Encab
+ | Encab    lhs.listaIds = [ @string ]
+
+-- Se hereda el atributo con la lista de identificadores
+
+ATTR Decls Decl MCuerpo Cuerpo Llamada [listaIdsH: {[String]} ||]
+
+SEM Programa
+ | Clase    decls.listaIdsH = @decls.listaIds
+
+SEM MCuerpo
+ | Just     just.listaIdsH = @lhs.listaIdsH
+ 
+-- Se sintetiza un valor booleano con el resultado de la consulta
+-- sobre los nodos de uso
+
+ATTR Programa Decls Decl MCuerpo Cuerpo Llamada [|| resultado: Bool ]
+
+SEM Decls
+ | Cons     lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil      lhs.resultado = True
+
+SEM MCuerpo
+ | Just     lhs.resultado = @just.resultado
+ | Nothing  lhs.resultado = True
+
+SEM Cuerpo
+ | Cons     lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil      lhs.resultado = True
+
+SEM Llamada
+ | Llamada  loc.error     = @string `elem` @lhs.listaIdsH
+            lhs.resultado = @error

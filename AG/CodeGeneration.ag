@@ -1,0 +1,29 @@
+
+ATTR Root [|| outCode: {IO ()}]
+
+SEM Root
+ | Root lhs.outCode = writeFile (@module.script ++ ".html") @module.script
+ 
+{-
+ATTR Module ModuleDeclaration ModuleBody Import Imports Portal Extend PortalBody Type 
+	 TopDecls TopDecl Methods Method Decls Decl DeclSimple Literal DefInterna 
+	 CuerpoInterno DeclBodyPortlet DefCampos DeclFields DeclField [ || script: String ]
+-}
+ATTR Module ModuleDeclaration [ || script: String ]
+
+ATTR Module [ || nombre: String ]
+
+SEM Module
+ | ConsModule lhs.nombre = @moduleDeclaration
+			  lhs.script = { cabezera ++ titulo @moduleDeclaration ++ fin }
+
+SEM ModuleDeclaration
+ | ModDec lhs.script = @string
+ 
+{
+cabezera = "<html>\n<body>\n"
+
+titulo n = "<h1>" ++ n ++ "</h1>"
+
+fin = "</body>\n</html>\n"
+}

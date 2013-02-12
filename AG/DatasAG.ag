@@ -1,0 +1,86 @@
+
+DATA Root
+ | Root Module
+
+DATA Module			 
+ | ConsModule ModuleDeclaration ModuleBody
+
+DATA ModuleDeclaration 
+ | ModDec String
+
+DATA ModuleBody		 
+ | ConsModBody Imports Portal
+ | ConsModBody2 Portal
+
+DATA Import          
+ | IdentificadorImport imp:String 
+
+TYPE Imports		 = [Import]
+
+DATA Portal 	     
+ | ConsPortal String PortalBody
+ | ConsPortal2 String Extend PortalBody
+
+DATA Extend 	     
+ | ConsExtend Type 
+
+DATA PortalBody      
+ | ConsPortalBody TopDecls Methods
+
+DATA Type 	     	 
+ | ConsType String
+
+TYPE TopDecls 	     = [TopDecl]
+
+DATA TopDecl 	     
+-- | ConsTopDecl String Type -- MBody
+ | ConsTopDecl nomAttr:String nomType:String
+ 
+{-
+TYPE MBody = MAYBE Body
+
+TYPE Body  = [Llamada]
+-}
+
+TYPE Methods		 = [Method]
+
+DATA Method 	     
+ | ConsMethod String Decls
+
+TYPE Decls 			 = [Decl]
+
+DATA Decl 	     	 
+ | ConsDeclSimple DeclSimple
+ | ConsDefInterna DefInterna
+
+DATA DeclSimple      
+ | ConsAddIcon String
+ | ConsAddTitle String
+ | ConsAddPortlet String
+					 
+DATA Literal         
+ | LiteralCadena String
+
+DATA DefInterna      
+ | ConsInterno String CuerpoInterno
+
+TYPE CuerpoInterno   = [DeclBodyPortlet]
+
+DATA DeclBodyPortlet 
+ | ConsDefTipo String
+ | ConsDefTitle String
+ | ConsDefBackground String
+ | ConsDefCampos DefCampos
+
+DATA DefCampos       
+ | ConsCampos DeclFields
+	       	     	 
+TYPE DeclFields		 = [DeclField]
+
+DATA DeclField		 
+ | ConsDeclField String
+ 
+DATA Llamada
+ | Llamada Bool String
+ 
+DERIVING * : Show

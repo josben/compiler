@@ -1,0 +1,31 @@
+
+DATA Root
+ | Root Tree
+
+DATA Tree
+ | Rama izq, der:Tree
+ | Hoja val:Int
+
+{
+main = sem_Root ejemplo
+
+ejemplo = Root_Root(Tree_Rama (Tree_Rama (Tree_Hoja 2) 
+			(Tree_Rama (Tree_Hoja 5) (Tree_Hoja 20))) (Tree_Hoja 10))
+}
+
+-- ATTR Root Tree [|| sum USE {+} {0} : Int]
+{-
+ATTR Root Tree [|| sum:Int]
+
+SEM Tree
+ | Hoja lhs.sum = @val
+
+SEM Tree
+ | Rama lhs.sum = @izq.sum + @der.sum
+-}
+
+ATTR Root Tree [||lista:{[Int]} ]
+
+SEM Tree
+ | Hoja lhs.lista = {[@val]}
+ | Rama lhs.lista = (@izq.lista)++(@der.lista)

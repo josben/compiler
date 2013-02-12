@@ -1,0 +1,251 @@
+
+DATA Root
+ | Root Module
+
+DATA Module			 
+ | ConsModule ModuleDeclaration ModuleBody
+
+DATA ModuleDeclaration 
+ | ModDec String
+
+DATA ModuleBody		 
+ | ConsModBody Imports Portal
+ | ConsModBody2 Portal
+
+DATA Import          
+ | IdentificadorImport String 
+
+TYPE Imports		 = [Import]
+
+DATA Portal 	     
+ | ConsPortal String PortalBody
+ | ConsPortal2 String Extend PortalBody
+
+DATA Extend 	     
+ | ConsExtend Type 
+
+DATA PortalBody      
+ | ConsPortalBody TopDecls Methods
+
+DATA Type 	     	 
+ | ConsType String
+
+TYPE TopDecls 	     = [TopDecl]
+
+DATA TopDecl 	     
+ | ConsTopDecl String Type -- MBody
+ 
+{-
+TYPE MBody = MAYBE Body
+
+TYPE Body  = [Llamada]
+-}
+
+TYPE Methods		 = [Method]
+
+DATA Method 	     
+ | ConsMethod String Decls
+
+DATA Decl 	     	 
+ | ConsDeclSimple DeclSimple
+ | ConsDefInterna DefInterna
+
+TYPE Decls 			 = [Decl]
+
+DATA DeclSimple      
+ | ConsAddIcon String
+ | ConsAddTitle String
+ | ConsAddPortlet String
+					 
+DATA Literal         
+ | LiteralCadena String
+
+DATA DefInterna      
+ | ConsInterno String CuerpoInterno
+
+TYPE CuerpoInterno   = [DeclBodyPortlet]
+
+DATA DeclBodyPortlet 
+ | ConsDefTipo String
+ | ConsDefTitle String
+ | ConsDefBackground String
+ | ConsDefCampos DefCampos
+
+DATA DefCampos       
+ | ConsCampos DeclFields
+	       	     	 
+TYPE DeclFields		 = [DeclField]
+
+DATA DeclField		 
+ | ConsDeclField String
+ 
+DATA Llamada
+ | Llamada Bool String
+ 
+DERIVING * : Show
+
+-- Atributo para obtener la lista de los importos que se estan usando
+
+ATTR ModuleBody Imports Import [ || listaImports:{[String]} ]
+
+SEM ModuleBody
+ | ConsModBody  lhs.listaImports = @imports.listaImports
+ | ConsModBody2 lhs.listaImports = {[]}
+
+SEM Imports
+ | Cons lhs.listaImports = @hd.listaImports ++ @tl.listaImports
+ | Nil  lhs.listaImports = []
+
+SEM Import
+ | IdentificadorImport lhs.listaImports = [@string]
+
+-- Atributo con toda la lista de Typos Identificadores del codigo
+
+ATTR TopDecls TopDecl [|| listaIds:{[String]}]
+
+SEM TopDecls
+ | Cons lhs.listaIds = @hd.listaIds ++ @tl.listaIds
+ | Nil  lhs.listaIds = []
+ 
+SEM TopDecl
+-- | ConsTopDecl lhs.listaIds = @type.listaIds
+ | ConsTopDecl lhs.listaIds = [@string]
+{-
+SEM Type
+ | ConsType lhs.listaIds = [@string]
+-}
+-- | ConsType lhs.listaTypes = [@type]
+
+-- Atributo para los tipos
+
+ATTR TopDecls TopDecl Type [|| listaTypes:{[String]}]
+
+SEM TopDecls
+ | Cons lhs.listaTypes = @hd.listaTypes ++ @tl.listaTypes
+ | Nil  lhs.listaTypes = []
+
+SEM TopDecl
+ | ConsTopDecl lhs.listaTypes = @type.listaTypes
+
+SEM Type
+ | ConsType lhs.listaTypes = [@string]
+ 
+-- Heredamos el atributo con la lista de identificadores
+
+-- ATTR MBody Body Imports Import TopDecls TopDecl Llamada [ listaImportsH:{[String]} || ]
+ATTR Imports Import Llamada [ listaImportsH:{[String]} || ]
+
+{-
+SEM TopDecl
+ | ConsTopDecl mBody.listaImportsH = @lhs.listaImportsH
+
+SEM MBody
+ | Just     just.listaImportsH = @lhs.listaImportsH
+-}
+SEM ModuleBody
+ | ConsModBody imports.listaImportsH = @imports.listaImports
+
+-- ATTR MBody Body TopDecls TopDecl Llamada [ listaIdsH, listaTypesH:{[String]} || ]
+ATTR TopDecls TopDecl Llamada [ listaIdsH, listaTypesH:{[String]} || ]
+{-
+SEM MBody
+ | Just     just.listaTypesH = @lhs.listaTypesH
+-}
+SEM PortalBody
+ | ConsPortalBody topDecls.listaIdsH   = @topDecls.listaIds
+ 				  topDecls.listaTypesH = @topDecls.listaTypes
+ 			--	  methods.listaIdsH  = @methods.listaIds
+
+
+-- ATTR Module ModuleBody Imports Import TopDecls TopDecl MBody Body Llamada [ || resultado:Bool ]
+ATTR Module ModuleBody Imports Import Llamada [ || resultado:Bool ]
+
+SEM Module
+ | ConsModule lhs.resultado = @moduleBody.resultado
+
+SEM ModuleBody
+ | ConsModBody  lhs.resultado = @imports.resultado
+ | ConsModBody2 lhs.resultado = True
+
+SEM Imports
+ | Cons lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil  lhs.resultado = True
+
+SEM Import
+ | IdentificadorImport lhs.resultado = True  -- @string.resultado
+{-
+SEM TopDecls
+ | Cons lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil  lhs.resultado = True
+ 
+SEM MBody
+ | Just    lhs.resultado = @just.resultado
+ | Nothing lhs.resultado = True
+ 
+SEM Body
+ | Cons     lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil      lhs.resultado = True
+-}
+SEM Llamada
+ | Llamada loc.error     = @string `elem` @lhs.listaImportsH
+ 		   lhs.resultado = @error
+
+ATTR Root [ || out: {IO ()} ]
+ATTR Module ModuleDeclaration ModuleBody Imports Import Portal Extend PortalBody TopDecls TopDecl Type Llamada [ || out:String ]
+
+SEM Root
+-- | Root lhs.out = putStrLn (@module.out ++ if not @module.resultado then "ERROR" else "OK")
+ | Root lhs.out = putStrLn (@module.out)
+ 
+SEM Module
+ | ConsModule lhs.out = "module " ++ @moduleDeclaration ++ " where \n" ++ @moduleBody.out
+ 
+SEM ModuleDeclaration
+ | ModDec lhs.out = @string
+
+SEM ModuleBody
+ | ConsModBody lhs.out = @imports.out ++ @portal.out
+ | ConsModBody2 lhs.out = ""
+
+SEM Imports
+ | Cons     lhs.out = @hd.out ++ "\n" ++ @tl.out
+ | Nil      lhs.out = ""
+ 
+SEM Import
+ | IdentificadorImport lhs.out = "import " ++ @string
+ 
+SEM Portal
+ | ConsPortal lhs.out = "new " ++ @string ++ "\n<% \n" ++ @portalBody.out ++ "%>\n"
+ | ConsPortal2 lhs.out = "new " ++ @string ++ " ( " ++ @extend.out ++ " ) \n<% \n" ++ @portalBody.out ++ "%>\n"
+
+SEM Extend
+ | ConsExtend lhs.out = @type.out
+ 
+SEM PortalBody
+ | ConsPortalBody lhs.out = @topDecls.out
+
+SEM TopDecls
+ | Cons     lhs.out = "    " ++ @hd.out ++ "\n" ++ @tl.out
+ | Nil      lhs.out = ""
+ 
+SEM TopDecl
+ | ConsTopDecl lhs.out = "type " ++ @string ++ " = " ++ @type.out
+
+SEM Type
+ | ConsType lhs.out = @string
+
+SEM Llamada
+ | Llamada lhs.out = @string ++ ( if (not @error) then "ERROR" else "OK" )
+
+{-
+ATTR ModuleBody Imports Import PortalBody TopDecls TopDecl Type [ || resultado: Bool]
+-- ATTR Imports Import PortalBody TopDecls TopDecl Type [ || resultado: Bool]
+
+SEM TopDecls
+ | Cons lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil  lhs.resultado = True
+ 
+SEM Imports
+ | Cons lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil  lhs.resultado = True
+-}

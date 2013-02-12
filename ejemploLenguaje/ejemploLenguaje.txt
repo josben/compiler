@@ -1,0 +1,63 @@
+
+module MyPortal where
+
+import Plantilla.Standar;
+import MiPortlet
+
+new PortalSponsor (Portal)
+<%
+	type PlanillaTest   = Portlet;
+	type ListaContactos = Portlet;
+	type ListaMensajes  = Portlet;
+	type Lista	        = MiPortlet
+	
+	mainPortal
+	<%
+		definePortlets();
+		addIcon    -> "file://home/fulanito/myIcon.jpg";
+		addTitle   -> "EL PORTAL";
+		addPortlet -> PlanillaTest;
+		addPortlet -> ListaTest;
+		addPortlet -> FormularioTest;
+		addPortlet -> Lista;
+	%>
+
+	definePortlets()
+	<%
+		PlanillaTest
+		<$
+			Title      -> "Usuarios";
+			Background -> "Yellow";
+			Field      -> [FechaInicio,Correo,Pais,Departamento]
+		$>
+	
+		ListaTest
+		<$
+			Title      -> "Mi Lista";
+			Background -> "Yellow"
+		$>
+	
+		ListaMensajes
+		<$
+			Title      -> "Ultimos mensajes";
+			Background -> "Yellow"
+		$>
+	%>
+%>
+
+-- OTRO MODULO
+
+module MyPortlet where
+
+import PortletSchool;
+
+new MiPortlet (PortletSchool)
+<%
+	Title -> "Portlet";
+	Background -> "Yellow";
+	Size       -> [100,100];
+%>
+
+-- OTRO MODULO
+
+module 

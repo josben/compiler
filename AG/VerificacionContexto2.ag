@@ -1,0 +1,57 @@
+
+-- ATTR Module ModuleBody Imports Import {- TopDecls TopDecl Type -} Llamada [ || resultado:Bool ]
+ATTR Module ModuleBody Portal PortalBody TopDecls TopDecl Methods Method Decls Decl DeclSimple DefInterna [ || resultado:Bool ]
+
+SEM Module
+ | ConsModule lhs.resultado = @moduleBody.resultado
+
+SEM ModuleBody
+ | ConsModBody  lhs.resultado = @portal.resultado
+ | ConsModBody2 lhs.resultado = @portal.resultado
+
+SEM Portal
+ | ConsPortal  lhs.resultado = @portalBody.resultado
+ | ConsPortal2 lhs.resultado = @portalBody.resultado
+
+SEM PortalBody
+ | ConsPortalBody lhs.resultado = @topDecls.resultado && @methods.resultado
+
+SEM TopDecls
+ | Cons lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil  lhs.resultado = True
+
+SEM TopDecl
+-- | ConsTopDecl lhs.resultado = @nomType `elem` @lhs.listaImportsH
+ | ConsTopDecl loc.errorTopDecl     = @nomType `elem` @lhs.listaImportsH
+ 			   lhs.resultado        = @errorTopDecl
+
+SEM Methods
+ | Cons lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil  lhs.resultado = True
+
+SEM Method
+ | ConsMethod lhs.resultado = @decls.resultado
+ 
+SEM Decls
+ | Cons lhs.resultado = @hd.resultado && @tl.resultado
+ | Nil  lhs.resultado = True
+
+SEM Decl
+ | ConsDeclSimple lhs.resultado = @declSimple.resultado
+ | ConsDefInterna lhs.resultado = @defInterna.resultado
+ 
+SEM DeclSimple
+ | ConsAddIcon    lhs.resultado       = True
+ | ConsAddTitle   lhs.resultado       = True
+ | ConsAddPortlet loc.errorAddPortlet = @string `elem` @lhs.listaIdsH
+ 				  lhs.resultado       = @errorAddPortlet
+
+SEM DefInterna
+ | ConsInterno loc.errorDefInterna = @string `elem` @lhs.listaIdsH
+ 			   lhs.resultado       = @errorDefInterna
+
+{-
+SEM Llamada
+ | Llamada loc.error     = @string `elem` @lhs.listaImportsH
+ 		   lhs.resultado = @error
+-}

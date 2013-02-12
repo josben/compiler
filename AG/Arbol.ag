@@ -1,0 +1,57 @@
+
+DATA Root
+ | Root Arbol
+
+DATA Arbol
+| Rama izq,der:Arbol
+-- | Rama Mio
+ | Hoja Int
+
+DATA Mio
+ | Mio Int
+{
+import List
+
+main = sem_Root ejemplo
+
+ejemplo = Root_Root(Arbol_Rama (Arbol_Rama (Arbol_Hoja 2) 
+			(Arbol_Rama (Arbol_Hoja 5) (Arbol_Hoja 20))) (Arbol_Hoja 10))
+}
+-- Este Atributo nos muestra todos los elementos del arbol
+
+ATTR Root Arbol [ || attr:{[Int]} ]
+
+SEM Arbol
+ | Hoja lhs.attr = {[@int]}
+-- | Rama lhs.attr = {[@izq]}
+ | Rama lhs.attr = {(@izq.attr)++(@der.attr)}
+-- | Rama lhs.attr = {@izq.attr++@der.attr}
+
+
+{-
+ATTR Root Arbol [ || listaEnteroOriginal:{[Int]} ]
+
+SEM Arbol
+ | Rama izq.listaEnteroOriginal = {@lhs.listaEnteroOriginal}
+ 		der.listaEnteroOriginal = {@izq.listaEnteroOriginal} -- sintetizado
+ 		lhs.listaEnteroOriginal = {@der.listaEnteroOriginal}
+
+-- | Hoja lhs.listaEnteroOriginal = {@lhs.listaEnteroOriginal ++ [@int]} -- heredado
+
+SEM Root
+ | Root arbol.listaEnteroOriginal = {[]}
+
+ATTR Root Arbol [ | listaOrdenadaEnteros:{[Int]} | ]
+
+SEM Arbol
+ | Hoja lhs.listaOrdenadaEnteros = {tail @lhs.listaOrdenadaEnteros}
+
+SEM Root
+ | Root arbol.listaOrdenadaEnteros = {sort @arbol.listaOrdenadaEnteros}
+
+ATTR Arbol [|| arbolResultado:Arbol]
+
+SEM Arbol
+ | Rama lhs.arbolResultado = {Arbol_Rama @izq.arbolResultado @der.arbolResultado}
+ | Hoja lhs.arbolResultado = {Arbol_Hoja (head @lhs.listaOrdenadaEnteros)}
+-}

@@ -1,0 +1,7 @@
+
+INCLUDE "DatasAG.ag"
+INCLUDE "CondicionesAG.ag"
+INCLUDE "VerificacionContexto2.ag"
+-- INCLUDE "VerificacionContexto.ag"
+INCLUDE "SalidaContexto.ag"
+-- INCLUDE "CodeGeneration.ag"

@@ -1,0 +1,48 @@
+
+module MiPortal where
+
+import Portlet;
+import Standar;
+import MiPortlet;
+
+new PortalSponsor (Portal)
+<%
+	type PlanillaTest   = Portlet;
+	type ListaContactos = Portlet;
+	type ListaMensajes  = Portlet;
+	type ListaTest      = Portlet;
+	type FormularioTest = Portlet;
+	type Lista	        = MiPortlet;
+
+	mainPortal
+	<%
+		addIcon    -> "myIcon.jpg";
+		addTitle   -> "EL PORTAL";
+		addPortlet -> PlanillaTest;
+		addPortlet -> ListaTest;
+		addPortlet -> FormularioTest;
+		addPortlet -> Lista;
+	%>
+
+	definePortlets
+	<%
+		PlanillaTest
+		<$
+			Title      -> "Usuarios";
+			Background -> Yellow;
+			Field      -> [FechaInicio,Correo,Pais,Departamento] ;
+		$>
+	
+		ListaTest
+		<$
+			Title      -> "Mi Lista";
+			Background -> Yellow;
+		$>
+	
+		ListaMensajes
+		<$
+			Title      -> "Ultimos mensajes";
+			Background -> Yellow;
+		$>
+	%>
+%>

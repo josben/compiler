@@ -1,0 +1,37 @@
+
+ATTR Module ModuleBody Imports Import TopDecls TopDecl {- Type -} {- Llamada -} [ || resultado:Bool ]
+-- ATTR Module ModuleBody Portal PortalBody TopDecls TopDecl [ || resultado:Bool ]
+
+SEM Module
+ | ConsModule lhs.resultado = @moduleBody.resultado
+
+SEM ModuleBody
+ | ConsModBody  lhs.resultado = @imports.resultado
+ | ConsModBody2 lhs.resultado = True -- @portal.resultado
+
+SEM Imports
+ | Cons lhs.resultado = @hd.resultado || @tl.resultado
+ | Nil  lhs.resultado = True
+
+SEM Import
+ | IdentificadorImport lhs.resultado = True
+ 
+SEM TopDecls
+ | Cons lhs.resultado = @hd.resultado || @tl.resultado
+ | Nil  lhs.resultado = True
+ 
+SEM TopDecl
+ | ConsTopDecl lhs.resultado = @nomType `elem` @lhs.listaImportsH
+
+{-
+SEM TopDecl
+ | ConsTopDecl lhs.resultado = True -- @type `elem` @lhs.listaImportsH
+
+SEM Type
+ | ConsType lhs.resultado = @string `elem` @lhs.listaImportsH
+-}
+{-
+SEM Llamada
+ | Llamada loc.error     = @string `elem` @lhs.listaImportsH
+ 		   lhs.resultado = @error
+-}

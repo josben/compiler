@@ -1,0 +1,94 @@
+
+ATTR Root [ || out: {IO ()} ]
+ATTR Module ModuleDeclaration ModuleBody Imports Import Portal Extend PortalBody TopDecls TopDecl Methods Method Decls Decl DeclSimple DefInterna CuerpoInterno DeclBodyPortlet DefCampos DeclFields DeclField Type {- Llamada -} [ || out:String ]
+
+SEM Root
+ | Root lhs.out = putStrLn (if not @module.resultado then @module.out ++ "\n" ++ "ERROR" else "OK, successfull compilation")
+-- | Root lhs.out = putStrLn (@module.out ++ if not @module.resultado then "ERROR" else "OK") {- Este es el bueno -}
+-- | Root lhs.out = putStrLn (@module.out)
+ 
+SEM Module
+ | ConsModule lhs.out = "module " ++ @moduleDeclaration ++ " where \n\n" ++ @moduleBody.out
+ 
+SEM ModuleDeclaration
+ | ModDec lhs.out = @string
+
+SEM ModuleBody
+ | ConsModBody lhs.out = @imports.out ++ @portal.out
+ | ConsModBody2 lhs.out = ""
+
+SEM Imports
+ | Cons     lhs.out = @hd.out ++ "\n" ++ @tl.out
+ | Nil      lhs.out = ""
+ 
+SEM Import
+-- | IdentificadorImport lhs.out = "import " ++ @string
+ | IdentificadorImport lhs.out = "import " ++ @imp ++ ";"
+ 
+SEM Portal
+ | ConsPortal  lhs.out = "\n" ++ "new " ++ @string ++ "\n<% \n" ++ @portalBody.out ++ "%>\n"
+ | ConsPortal2 lhs.out = "\n" ++ "new " ++ @string ++ " ( " ++ @extend.out ++ " ) \n<% \n" ++ @portalBody.out ++ "%>\n"
+
+SEM Extend
+ | ConsExtend lhs.out = @type.out
+ 
+SEM PortalBody
+ | ConsPortalBody lhs.out = @topDecls.out ++ @methods.out
+
+SEM TopDecls
+ | Cons     lhs.out = "    " ++ @hd.out ++ "\n" ++ @tl.out
+ | Nil      lhs.out = ""
+ 
+SEM TopDecl
+ | ConsTopDecl lhs.out = "type " ++ @nomAttr ++ " = " ++ @nomType ++ ";" ++ if not @errorTopDecl then " <- Tipo no declarado o no se a importado" else "" 
+-- "type " ++ @string ++ " = " ++ @type.out ++ ";"
+
+SEM Methods
+ | Cons     lhs.out = "    " ++ @hd.out ++ "\n" ++ @tl.out
+ | Nil      lhs.out = ""
+
+SEM Method
+ | ConsMethod lhs.out = @string ++ "\n" ++ "    <%" ++ "\n" ++ @decls.out ++ "\n" ++ "    %>"
+ 
+SEM Decls
+ | Cons     lhs.out = "        " ++ @hd.out ++ "\n" ++ @tl.out
+ | Nil      lhs.out = ""
+
+SEM Decl
+ | ConsDeclSimple lhs.out = @declSimple.out
+ | ConsDefInterna lhs.out = @defInterna.out
+
+SEM DeclSimple
+ | ConsAddIcon    lhs.out = "addIcon   " ++ " -> " ++ @string ++ ";"
+ | ConsAddTitle   lhs.out = "addTitle  " ++ " -> " ++ @string ++ ";"
+ | ConsAddPortlet lhs.out = "addPortlet" ++ " -> " ++ @string ++ ";" ++ if not @errorAddPortlet then " <- Identificador no declarado" else "" 
+
+SEM DefInterna
+ | ConsInterno lhs.out = @string ++ if not @errorDefInterna then " <- Identificador no declarado" else "" ++ "\n" ++ "        <$" ++ "\n" ++ @cuerpoInterno.out ++ "\n" ++ "        $>"
+
+SEM CuerpoInterno
+ | Cons     lhs.out = "            " ++ @hd.out ++ "\n" ++ @tl.out
+ | Nil      lhs.out = ""
+
+SEM DeclBodyPortlet 
+ | ConsDefTipo       lhs.out = "Tipo      " ++ " -> " ++ @string ++ ";"
+ | ConsDefTitle      lhs.out = "Title     " ++ " -> " ++ @string ++ ";"
+ | ConsDefBackground lhs.out = "Background" ++ " -> " ++ @string ++ ";"
+ | ConsDefCampos     lhs.out = "Field     " ++ " -> " ++ "[" ++ @defCampos.out ++ "]" ++ ";" 
+ 
+SEM DefCampos       
+ | ConsCampos lhs.out = @declFields.out
+
+SEM DeclFields
+ | Cons     lhs.out = @hd.out ++ "," ++ @tl.out
+ | Nil      lhs.out = ""
+
+SEM DeclField		 
+ | ConsDeclField lhs.out = @string
+
+SEM Type
+ | ConsType lhs.out = @string
+{-
+SEM Llamada
+ | Llamada lhs.out = @string ++ ( if (not @error) then "ERROR" else "OK" )
+-}

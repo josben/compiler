@@ -1,0 +1,18 @@
+
+new PlanillaTest (Portlet) implements Planilla
+<%
+	Title      -> "Usuarios";
+	Background -> Yellow;
+	Field      -> [Nombre,FechaInicio,Correo,Pais,Departamento];
+	Row		   -> [Juan Perez,10/04/2006,juan@portlet.com,Bolivia,Cbba];
+	Row		   -> [Pedro Gonzales,23/01/2006,pedro@portlet.com,Colombia,Quito]
+%>
+
+new FormularioTest (Portlet) implements Form
+<%
+	Title	   -> "Registro";
+	Background -> white;
+	Field	   -> [*Name* || *Last Name* , Street || Code Zip, *Country* || Location, Number Phone];
+	TextPlain  -> [Este es un registro vea antes esta pagina: <http://register.com>];
+	Submit	   -> "Register"
+%>
