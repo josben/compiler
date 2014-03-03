@@ -23,4 +23,4 @@ main = do
 	-- opsSimb = ""
 	-- file    = "ejemploLenguaje2.txt"
 	opsSimb = "+=<>/$(){};%$-\".:\\,[]_"
-	file    = "/home/benjamin/workspace/GenericPortlet/ejemploLenguaje/ejemploLenguaje3.txt"
+	file    = "ejemploLenguaje/ejemploLenguaje3.txt"
