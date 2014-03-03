@@ -2,7 +2,7 @@
 module Scanner where
 
 import UU.Parsing
-import Char
+import Data.Char
 
 {- Modulo Scanner de un lenguaje de expresiones
    simple, con abstracciones tipo let.
